@@ -18,7 +18,7 @@ public:
 
 private:
     string _sought;
-    priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> _resultQue;
+    priority_queue<pair<shared_ptr<WebPage>,double>,vector<pair<shared_ptr<WebPage>,double>>,MyCompareWebpage> _resultQue;
     shared_ptr<TcpConnection> _conn;
     RedisServer _redisServer;
     LRU * _cacheLocal;

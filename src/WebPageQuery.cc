@@ -21,11 +21,14 @@ void WebPageQuery::init_r(){
         atexit(destroy);
     }
 }
-priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> &
+
+priority_queue<pair<shared_ptr<WebPage>,double>,vector<pair<shared_ptr<WebPage>,double>>,MyCompareWebpage> 
 WebPageQuery::doXapianQuery(string queryWords){
-    /* while(!_resultQue.empty()){ */
-    /*     _resultQue.pop(); */
-    /* } */
+    lock_guard<mutex> lock(_mtxForXapian);
+    _pages.clear();
+    while(!_resultQue.empty()){
+        _resultQue.pop();
+    }
     const char * const K_DB_PATH = "index_data";
     vector<string> words = _wordCutTool->cut(queryWords);
     Xapian::Query query = Xapian::Query("");
@@ -54,12 +57,13 @@ WebPageQuery::doXapianQuery(string queryWords){
         end = docstr.find("</content>");
         string content = string(docstr.begin()+start,docstr.begin()+end);
         double docScoreWeight = it.get_weight();
-        WebPage web;
-        web._doc = docstr;
-        web._docId = stoi(docId);
-        web._docTitle = title;
-        web._docUrl = link;
-        web._docContent = content;
+        shared_ptr<WebPage> web = std::make_shared<WebPage>(docstr,stoi(docId),title,link,content);
+        /* web._doc = docstr; */
+        /* web._docId = stoi(docId); */
+        /* web._docTitle = title; */
+        /* web._docUrl = link; */
+        /* web._docContent = content; */
+        /* _resultQue.emplace(std::make_shared<WebPage>(web),docScoreWeight); */
         _resultQue.emplace(web,docScoreWeight);
     }
     /* auto tempQue = std::move(_resultQue); */
@@ -105,7 +109,7 @@ double WebPageQuery::getCosin(const vector<double>& candidate){
     return res;
 }
 
-priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> WebPageQuery::doQuery(string queryWords){
+priority_queue<pair<shared_ptr<WebPage>,double>,vector<pair<shared_ptr<WebPage>,double>>,MyCompareWebpage> WebPageQuery::doQuery(string queryWords){
     _splitedWords.clear();
     _queryWordsWeight.clear();
     _pagesWeight.clear();
@@ -133,7 +137,7 @@ priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpag
             /* } */
             double cosin = getCosin(couple.second);
             /* cout <<  " consi " << cosin << "page" << _pages[couple.first]._docTitle  << "\n"; */
-            _resultQue.push(std::make_pair(_pages[couple.first],cosin));
+            _resultQue.emplace(std::make_shared<WebPage>(_pages[couple.first]),cosin);
         }
 
         /* while(_resultQue.size()){ */

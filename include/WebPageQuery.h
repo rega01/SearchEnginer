@@ -13,8 +13,8 @@
 using std::priority_queue;
 
 struct MyCompareWebpage{
-    bool operator()(const pair<WebPage,double> &lhs,
-                    const pair<WebPage,double> &rhs)const {
+    bool operator()(const pair<shared_ptr<WebPage>,double> &lhs,
+                    const pair<shared_ptr<WebPage>,double> &rhs)const {
         return lhs.second < rhs.second;
     }
 };
@@ -23,8 +23,9 @@ class WebPageQuery
 {
 public:
     static WebPageQuery * createInstance();
-    priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> doQuery(string queryWords);
-    priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> &doXapianQuery(string queryWords);
+    /* priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> doQuery(string queryWords); */
+    priority_queue<pair<shared_ptr<WebPage>,double>,vector<pair<shared_ptr<WebPage>,double>>,MyCompareWebpage> doQuery(string queryWords);
+    priority_queue<pair<shared_ptr<WebPage>,double>,vector<pair<shared_ptr<WebPage>,double>>,MyCompareWebpage> doXapianQuery(string queryWords);
 private:
     static void init_r();
     static void destroy();
@@ -54,7 +55,8 @@ private:
 
     map<int,vector<double>> _pagesWeight;
 
-    priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> _resultQue;
+    /* priority_queue<pair<WebPage,double>,vector<pair<WebPage,double>>,MyCompareWebpage> _resultQue; */
+    priority_queue<pair<shared_ptr<WebPage>,double>,vector<pair<shared_ptr<WebPage>,double>>,MyCompareWebpage> _resultQue;
 
     //存放包含所有分词后关键字的文章id及其内容
     unordered_map<int,WebPage> _pages;
@@ -64,6 +66,7 @@ private:
     unordered_map<string,set<pair<int,double>>> _invertIndexLib;
     SplitTool * _wordCutTool;
 
+    mutex _mtxForXapian;
 
     static WebPageQuery * _pInstance;
     static pthread_once_t _once;

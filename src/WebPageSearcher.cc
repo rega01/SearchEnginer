@@ -36,7 +36,7 @@ void WebPageSearcher::response(){
     json["length"] = 0;
 
     while(!_resultQue.empty() && pos < topK){
-        WebPage web = _resultQue.top().first;
+        WebPage web = *(_resultQue.top().first);
         json["value"][pos]["title"] = web._docTitle;
         json["value"][pos]["url"] = web._docUrl;
 
